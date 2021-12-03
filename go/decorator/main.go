@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"math"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -46,6 +48,19 @@ func wrapLoggerAndExecution(originalFunc piFunc, l *log.Logger) piFunc {
 			return originalFunc(n)
 		}
 		return fn(n)
+	}
+}
+
+func wrapCache(fn piFunc, cache *sync.Map) piFunc {
+	return func(n int) float64 {
+		key := fmt.Sprintf("n=%d", n)
+		val, ok := cache.Load(key)
+		if ok {
+			return val.(float64)
+		}
+		result := fn(n)
+		cache.Store(key, result)
+		return result
 	}
 }
 func main() {
